@@ -65,20 +65,16 @@ impl FluidSimulationApp {
 
     for index in 0..self.particles.len() {
       self.particles[index].local_density = {
-        let particle = &self.particles[index];
-
-        let adjacente_particles: Vec<&Particle> = self.cell_manager.get_adjancet_particles(particle, &self.particles);
-        self.smoothed_interaction.calculate_density(particle, &adjacente_particles)
-      }
+        self.smoothed_interaction.calculate_density(&self.particles[index], &self.particles, &self.cell_manager)
+      };
     }
 
     for index in 0..self.particles.len() {
       self.particles[index].acceleration = {
         let particle = &self.particles[index];
         
-        let adjacente_particles: Vec<&Particle> = self.cell_manager.get_adjancet_particles(particle, &self.particles);
-        let mut acceleration = self.smoothed_interaction.calculate_acceleration_due_to_pressure(particle, &adjacente_particles);
-        acceleration += self.smoothed_interaction.calculate_viscosity(particle, &adjacente_particles);
+        let mut acceleration = self.smoothed_interaction.calculate_acceleration_due_to_pressure(particle, &self.particles, &self.cell_manager);
+        acceleration += self.smoothed_interaction.calculate_viscosity(particle, &self.particles, &self.cell_manager);
         acceleration += self.external_attractor.get_external_attraction_acceleration(particle);
 
         acceleration

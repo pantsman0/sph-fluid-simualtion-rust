@@ -1,3 +1,5 @@
+use std::iter::FlatMap;
+
 use crate::fluid_simulation::particle::Particle;
 use vector2d::Vector2D;
 
@@ -38,10 +40,6 @@ impl CellManager {
     self.generate_start_indices();
   }
 
-  pub fn get_adjancet_particles<'a>(&self, particle: &Particle, particles: &'a Vec<Particle>) -> Vec<&'a Particle> {
-    self.get_adjacent_cell_keys_from_position(particle.position).iter().flat_map(|&adjacent_cell_key| self.get_particle_indexes_from_cell(adjacent_cell_key)).map(|index| &particles[index]).collect()
-  }
-
   fn to_spacial_lookup(&mut self, particle: &mut Particle) {
     let cell_coord = self.particle_position_to_cell_coord(particle.position);
     let cell_key = self.cell_coord_to_cell_key(cell_coord);
@@ -59,9 +57,9 @@ impl CellManager {
     self.starting_indices = starting_indices;
   }
 
-  pub fn get_adjacent_cell_keys_from_position(&self, position: Vector2D<f32>) -> Vec<usize> {
+  pub fn get_adjacent_cell_keys_from_position(&self, position: Vector2D<f32>) -> Vec<usize>{
     let current_cell_coord = self.particle_position_to_cell_coord(position);
-    let mut adjacent_cell_coords = vec![
+    let adjacent_cell_coords = vec![
         current_cell_coord + Vector2D::new(-1, -1),
         current_cell_coord + Vector2D::new(-1, 0),
         current_cell_coord + Vector2D::new(-1, 1),
@@ -73,13 +71,10 @@ impl CellManager {
         current_cell_coord + Vector2D::new(1, 1)
     ];
     
-    adjacent_cell_coords = adjacent_cell_coords
+    adjacent_cell_coords
         .iter()
-        .cloned() // Clone the elements to create owned copies
-        .filter(|coord| coord.x >= 0 && coord.x < self.number_of_columns && coord.y >= 0 && coord.y < self.number_of_rows)
-        .collect();
-      let adjacent_cell_keys = adjacent_cell_coords.iter().map(|coord| self.cell_coord_to_cell_key(*coord)).collect();
-      adjacent_cell_keys
+        .filter(|&coord| coord.x >= 0 && coord.x < self.number_of_columns && coord.y >= 0 && coord.y < self.number_of_rows)
+        .map(|coord| self.cell_coord_to_cell_key(*coord)).collect()
   }
 
   pub fn get_particle_indexes_from_cell(&self, cell_key: usize) -> Vec<usize> {
