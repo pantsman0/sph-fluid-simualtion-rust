@@ -59,21 +59,32 @@ impl FluidSimulationApp {
       self.dynamics_manager.update_position(particle);
       self.collision_manager.apply_boundary_conditions(particle);
     }
+
     self.cell_manager.update(&mut self.particles);
-    let mut particles = self.particles.clone();
+
+
     for index in 0..self.particles.len() {
-      let particle = &mut self.particles[index];
-      let adjacente_particles: Vec<Particle> = self.cell_manager.get_adjancet_particles(particle.clone(), &particles);
-      particle.local_density = self.smoothed_interaction.calculate_density(particle, &adjacente_particles);
+      self.particles[index].local_density = {
+        let particle = &self.particles[index];
+
+        let adjacente_particles: Vec<&Particle> = self.cell_manager.get_adjancet_particles(particle, &self.particles);
+        self.smoothed_interaction.calculate_density(particle, &adjacente_particles)
+      }
     }
-    particles = self.particles.clone();
+
     for index in 0..self.particles.len() {
-      let particle = &mut self.particles[index];
-      let adjacente_particles: Vec<Particle> = self.cell_manager.get_adjancet_particles(particle.clone(), &particles);
-      particle.acceleration = self.smoothed_interaction.calculate_acceleration_due_to_pressure(particle, &adjacente_particles);
-      particle.acceleration += self.smoothed_interaction.calculate_viscosity(particle, &adjacente_particles);
-      particle.acceleration += self.external_attractor.get_external_attraction_acceleration(particle);
-      self.dynamics_manager.update_velocity(particle);
+      self.particles[index].acceleration = {
+        let particle = &self.particles[index];
+        
+        let adjacente_particles: Vec<&Particle> = self.cell_manager.get_adjancet_particles(particle, &self.particles);
+        let mut acceleration = self.smoothed_interaction.calculate_acceleration_due_to_pressure(particle, &adjacente_particles);
+        acceleration += self.smoothed_interaction.calculate_viscosity(particle, &adjacente_particles);
+        acceleration += self.external_attractor.get_external_attraction_acceleration(particle);
+
+        acceleration
+      };
+      
+      self.dynamics_manager.update_velocity(&mut self.particles[index]);
     }
   }
 

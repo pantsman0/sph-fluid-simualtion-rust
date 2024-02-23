@@ -1,28 +1,32 @@
 use crate::fluid_simulation::particle::Particle;
-use opengl_graphics::GlGraphics;
+use opengl_graphics::{GlGraphics, GlyphCache};
 use piston::RenderArgs;
 use std::cmp::max;
-use graphics::*;
+use graphics::{color::{BLACK, WHITE}, math::Vec2d, *};
 
-
-pub struct RenderManager {
-  gl: GlGraphics
+use std::time::{Instant, Duration};
+pub struct RenderManager<'r> {
+  gl: GlGraphics,
+  cc: opengl_graphics::GlyphCache<'r>,
+  last_render_time: Instant
 }
 
 
-impl RenderManager {
+impl<'a> RenderManager<'a> {
 
-  pub fn new(gl: GlGraphics) -> Self {
+  pub fn new(gl: GlGraphics, cc: GlyphCache<'a>) -> Self {
     RenderManager {
-        gl
+        gl,
+        cc,
+        last_render_time: Instant::now()
     }
   }
 
 
-  pub fn render(&mut self, args: &RenderArgs, particles: Vec<Particle>) {
-    const BLACK_COLOR: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
+  pub fn render(&mut self, args: &RenderArgs, particles: &Vec<Particle>) {
     self.gl.draw(args.viewport(), |c, gl| {
-        clear(BLACK_COLOR, gl);
+        clear(BLACK, gl);
+        //let start = std::time::Instant::now();
         for particle in particles {
             let color = Self::speed_to_color_gradient(particle.speed());
             ellipse(
@@ -33,6 +37,10 @@ impl RenderManager {
                 gl,
             );
         }
+
+        Text::new_color( WHITE, 10).draw_pos(format!("{} fps", 1000 / self.last_render_time.elapsed().as_millis() ).as_str(), [10.0, 10.0], &mut self.cc, &Default::default(), c.transform, gl).unwrap();
+        self.last_render_time = Instant::now();
+        //println!("ellipse_calls: {:?}, particles: {}", start.elapsed(), particles.len());
     });
   }
 
