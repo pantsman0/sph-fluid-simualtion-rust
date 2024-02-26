@@ -62,7 +62,13 @@ mod tests {
         cell_manager.update(particles);
 
         // ACT
-        let adjacent_particles = cell_manager.get_adjancet_particles(particles[4].clone(), particles);
+        let adjacent_particles: Vec<Particle> = cell_manager.
+        get_adjacent_cell_keys_from_position(particles[4].position)
+        .flat_map(|adjacent_cell_key| {
+            cell_manager.get_particle_indexes_iter_from_cell(adjacent_cell_key)
+        })
+        .map(|index| particles[index].clone())
+        .collect();
 
         // ASSERT
         assert_eq!(adjacent_particles.len(), 9);
@@ -179,8 +185,8 @@ mod tests {
         let cell_keys = cell_manager.get_adjacent_cell_keys_from_position(particles[4].position);
 
         // ASSERT
-        for (index, cell_key) in cell_keys.iter().enumerate() {
-            assert_eq!(cell_key, &index);
+        for (index, cell_key) in cell_keys.enumerate() {
+            assert_eq!(cell_key, index);
         }
     }
 

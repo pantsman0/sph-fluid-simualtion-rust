@@ -39,9 +39,8 @@ impl SmoothedInteraction {
         let mut property_gradient = Vector2D::new(0.0, 0.0);
         for iter_particle in cell_manager
             .get_adjacent_cell_keys_from_position(particle.position)
-            .iter()
-            .flat_map(|&adjacent_cell_key| {
-                cell_manager.get_particle_indexes_from_cell(adjacent_cell_key)
+            .flat_map(|adjacent_cell_key| {
+                cell_manager.get_particle_indexes_iter_from_cell(adjacent_cell_key)
             })
             .map(|index| &particles[index])
         {
@@ -76,9 +75,8 @@ impl SmoothedInteraction {
         let mut density = particle.mass * spiky_smoothing_kernel(0.0, self.smoothing_radius);
         for iter_particle in cell_manager
             .get_adjacent_cell_keys_from_position(particle.position)
-            .iter()
-            .flat_map(|&adjacent_cell_key| {
-                cell_manager.get_particle_indexes_from_cell(adjacent_cell_key)
+            .flat_map(|adjacent_cell_key| {
+                cell_manager.get_particle_indexes_iter_from_cell(adjacent_cell_key)
             })
             .map(|index| &particles[index])
         {
@@ -102,9 +100,8 @@ impl SmoothedInteraction {
         let mut viscosit_force = Vector2D::new(0.0, 0.0);
         for iter_particle in cell_manager
             .get_adjacent_cell_keys_from_position(particle.position)
-            .iter()
-            .flat_map(|&adjacent_cell_key| {
-                cell_manager.get_particle_indexes_from_cell(adjacent_cell_key)
+            .flat_map(|adjacent_cell_key| {
+                cell_manager.get_particle_indexes_iter_from_cell(adjacent_cell_key)
             })
             .map(|index| &particles[index])
         {

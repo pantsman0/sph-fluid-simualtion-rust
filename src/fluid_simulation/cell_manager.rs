@@ -57,9 +57,9 @@ impl CellManager {
     self.starting_indices = starting_indices;
   }
 
-  pub fn get_adjacent_cell_keys_from_position(&self, position: Vector2D<f32>) -> Vec<usize>{
+  pub fn get_adjacent_cell_keys_from_position(&self, position: Vector2D<f32>) -> impl Iterator<Item=usize> + '_ {
     let current_cell_coord = self.particle_position_to_cell_coord(position);
-    let adjacent_cell_coords = vec![
+    vec![
         current_cell_coord + Vector2D::new(-1, -1),
         current_cell_coord + Vector2D::new(-1, 0),
         current_cell_coord + Vector2D::new(-1, 1),
@@ -69,12 +69,17 @@ impl CellManager {
         current_cell_coord + Vector2D::new(1, -1),
         current_cell_coord + Vector2D::new(1, 0),
         current_cell_coord + Vector2D::new(1, 1)
-    ];
-    
-    adjacent_cell_coords
-        .iter()
+    ]
+    .into_iter()
+        .into_iter()
         .filter(|&coord| coord.x >= 0 && coord.x < self.number_of_columns && coord.y >= 0 && coord.y < self.number_of_rows)
-        .map(|coord| self.cell_coord_to_cell_key(*coord)).collect()
+        .map(|coord| self.cell_coord_to_cell_key(coord))
+  }
+
+  pub fn get_particle_indexes_iter_from_cell(&self, cell_key: usize) -> impl Iterator<Item=usize> + '_ {
+    (self.starting_indices[cell_key]..)
+      .map_while(move |index| if index < self.particle_count as usize && cell_key == self.spatial_lookup[index].0 {Some(self.spatial_lookup[index].1)} else {None})
+      //.map(|index| self.spatial_lookup[index].1)
   }
 
   pub fn get_particle_indexes_from_cell(&self, cell_key: usize) -> Vec<usize> {
